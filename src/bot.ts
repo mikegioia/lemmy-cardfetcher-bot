@@ -87,7 +87,7 @@ const bot = new LemmyBot({
     post: {
       handle: ({
         postView: {
-          post: { creator_id, id, post }
+          post: { creator_id, id, body }
         },
         botActions: { createComment }
       }) => {
