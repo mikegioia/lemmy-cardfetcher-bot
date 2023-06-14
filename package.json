@@ -1,0 +1,31 @@
+{
+  "name": "lemmy-cardfetcher-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/bot.ts",
+  "scripts": {
+    "eslint": "./node_modules/.bin/eslint .",
+    "prettier": "./node_modules/.bin/prettier --write src",
+    "start": "./node_modules/.bin/ts-node src/bot.ts"
+  },
+  "keywords": [],
+  "author": "Mike Gioia <mike@particlebits.com>",
+  "license": "APGL-3.0",
+  "devDependencies": {
+    "@types/jaro-winkler": "^0.2.1",
+    "@types/node": "^20.1.5",
+    "@typescript-eslint/eslint-plugin": "^5.59.11",
+    "@typescript-eslint/parser": "^5.59.11",
+    "eslint": "^8.42.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.8.8",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "jaro-winkler": "^0.2.8",
+    "lemmy-bot": "^0.3.9"
+  }
+}
