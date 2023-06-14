@@ -32,13 +32,12 @@ async function processContent(
     createComment(getComment(cards));
   }
 }
+
 /**
  * Reads in a post or comment message and pulls out any
  * cards that are listed in the approved format. Each card
  * is queried and compiled into a single message replied
  * to the original post or comment.
- *
- * @param {gathererCards[]} content
  */
 async function getCards(gathererCards: string[]): Promise<any[]> {
   const cards: string[] = [];
@@ -61,8 +60,6 @@ async function getCards(gathererCards: string[]): Promise<any[]> {
  * Searches the Scryfall database for a match on the
  * card name and then returns a string containing links
  * to the card if found.
- *
- * @param {string} card
  */
 async function searchCardName(cardName: string): Promise<any> {
   const encoded = encodeURI(cardName);
@@ -82,8 +79,6 @@ async function searchCardName(cardName: string): Promise<any> {
  *       (G): Gatherer web link
  *      (SF): Scryfall web link
  *     (txt): Scryfall text link
- *
- * @param {ScryfallCardObject} card
  */
 function getResponseLine(card: ScryfallCardObject): string {
   const utmSource = 'utm_source=lemmy';
@@ -99,8 +94,6 @@ function getResponseLine(card: ScryfallCardObject): string {
 
 /**
  * Returns the full markdown comment to reply with.
- *
- * @param {string[]} cards
  */
 function getComment(cards: string[]): string {
   return (
@@ -112,9 +105,6 @@ function getComment(cards: string[]): string {
 /**
  * Looks for the best match for the card name in the set
  * of cards found in the scryfall search.
- *
- * @param {string}               cardName
- * @param {ScryfallCardObject[]} cardList
  */
 function pickBestCard(
   cardName: string,
