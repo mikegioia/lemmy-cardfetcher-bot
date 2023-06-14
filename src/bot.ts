@@ -134,14 +134,6 @@ const bot = new LemmyBot({
   connection: {
     secondsBetweenPolls: 30
   },
-  federation: {
-    allowList: [
-      {
-        instance: INSTANCE,
-        communities: ['sandbox']
-      }
-    ]
-  },
   dbFile: 'db.sqlite3',
   handlers: {
     comment: {
