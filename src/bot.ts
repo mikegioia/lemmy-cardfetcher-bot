@@ -1,4 +1,4 @@
-import LemmyBot, { CommentView, PostView } from 'lemmy-bot';
+import LemmyBot from 'lemmy-bot';
 import { config } from 'dotenv';
 import { ScryfallCardObject } from './scryfall';
 import distance = require('jaro-winkler');
@@ -14,26 +14,47 @@ const gathererRegex = new RegExp(/(?<=\[\[)(.*?)(?=\]\])/g);
 const scryfallEndpoint = 'https://api.scryfall.com/cards/search?q=';
 
 /**
- * Reads in a post or comment message and pulls out any
- * cards that are listed in the approved format. Each card
- * is queried and compiled into a single message replied
- * to the original post or comment.
- *
- * @param {string} message
+ * Processes a comment and replies if any cards are found.
  */
-function searchCards(message: string): void {
-  const gathererCards = message.match(gathererRegex);
-  const cards: string[] = [];
+async function processContent(
+  content: string,
+  createComment: (comment: string) => void
+) {
+  const gathererCards = content.match(gathererRegex);
 
   if (!gathererCards) {
     return;
   }
 
-  gathererCards.forEach((card: string) => {
-    fetchAndGetResponseLine(card);
-  });
+  const cards = await getCards(gathererCards);
 
-  console.log(cards);
+  if (cards) {
+    createComment(getComment(cards));
+  }
+}
+/**
+ * Reads in a post or comment message and pulls out any
+ * cards that are listed in the approved format. Each card
+ * is queried and compiled into a single message replied
+ * to the original post or comment.
+ *
+ * @param {gathererCards[]} content
+ */
+async function getCards(gathererCards: string[]): Promise<any[]> {
+  const cards: string[] = [];
+
+  for (const card of gathererCards) {
+    const scryfallResponse = await searchCardName(card);
+    const cardList = scryfallResponse.data;
+
+    if (cardList) {
+      cards.push(getResponseLine(pickBestCard(card, cardList)));
+    } else {
+      cards.push(`Unable to retrieve information for "${card}"`);
+    }
+  }
+
+  return cards;
 }
 
 /**
@@ -43,20 +64,49 @@ function searchCards(message: string): void {
  *
  * @param {string} card
  */
-function fetchAndGetResponseLine(card: string): void {
-  const encoded = encodeURI(card);
+async function searchCardName(cardName: string): Promise<any> {
+  const encoded = encodeURI(cardName);
+  const response = await fetch(scryfallEndpoint + encoded);
+  const json = await response.json();
 
-  fetch(scryfallEndpoint + encoded)
-    .then((response: any) => response.json())
-    .then((scryfallResponse: any) => {
-      const cardList = scryfallResponse.data;
+  return json;
+}
 
-      if (!cardList) {
-        console.log(`Unable to retrieve information for "${card}"`);
-      }
+/**
+ * Returns a single line in the comment reply text
+ * containing all of the different links to the card:
+ *
+ *   `Card Name - (G) (SF) (txt)`
+ *
+ * Card Name: Scryfall image link
+ *       (G): Gatherer web link
+ *      (SF): Scryfall web link
+ *     (txt): Scryfall text link
+ *
+ * @param {ScryfallCardObject} card
+ */
+function getResponseLine(card: ScryfallCardObject): string {
+  const utmSource = 'utm_source=lemmy';
 
-      getResponseLine(pickBestCard(card, cardList));
-    });
+  const responseLine =
+    `[${card.name}](${card.image_uris.normal}&${utmSource}) - ` +
+    `[(G)](${card.related_uris.gatherer}&${utmSource}) ` +
+    `[(SF)](${card.scryfall_uri}) ` +
+    `[(txt)](${card.uri}?${utmSource}&format=text)`;
+
+  return responseLine;
+}
+
+/**
+ * Returns the full markdown comment to reply with.
+ *
+ * @param {string[]} cards
+ */
+function getComment(cards: string[]): string {
+  return (
+    cards.map((line) => '* ' + line) +
+    '\n\n---\n[[card name]] or [[card name|SET]] to call'
+  );
 }
 
 /**
@@ -85,31 +135,6 @@ function pickBestCard(
   return cardList[index];
 }
 
-/**
- * Returns a single line in the comment reply text
- * containing all of the different links to the card:
- *
- *   `Card Name - (G) (SF) (txt)`
- *
- * Card Name: Scryfall image link
- *       (G): Gatherer web link
- *      (SF): Scryfall web link
- *     (txt): Scryfall text link
- *
- * @param {ScryfallCardObject} card
- */
-function getResponseLine(card: ScryfallCardObject): void {
-  const utmSource = 'utm_source=lemmy';
-
-  const responseLine =
-    `[${card.name}](${card.image_uris.normal}&${utmSource}) - ` +
-    `[(G)](${card.related_uris.gatherer}&${utmSource}) ` +
-    `[(SF)](${card.scryfall_uri}) ` +
-    `[(txt)](${card.uri}?${utmSource}&format=text)`;
-
-  console.log(responseLine + '\n');
-}
-
 const bot = new LemmyBot({
   instance: INSTANCE,
   credentials: {
@@ -132,27 +157,35 @@ const bot = new LemmyBot({
     comment: {
       handle: ({
         commentView: {
-          comment: { creator_id, id, content }
+          comment: { id, post_id, content }
         },
         botActions: { createComment }
       }) => {
-        console.log(id + ': ' + content);
+        processContent(String(content), (comment) => {
+          createComment({
+            content: comment,
+            postId: post_id,
+            parentId: id
+          });
+        });
       }
     },
     post: {
       handle: ({
         postView: {
-          post: { creator_id, id, body }
+          post: { id, body }
         },
         botActions: { createComment }
       }) => {
-        console.log('post: [' + id + ']');
+        processContent(String(body), (comment) => {
+          createComment({
+            content: comment,
+            postId: id
+          });
+        });
       }
     }
   }
 });
 
-// bot.start();
-searchCards(
-  "My favorite cards are [[Verdant Force]] and [[Stitcher's Supplier]], what are yours?"
-);
+bot.start();

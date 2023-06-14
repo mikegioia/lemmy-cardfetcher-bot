@@ -9,7 +9,7 @@
     "start": "./node_modules/.bin/ts-node src/bot.ts"
   },
   "keywords": [],
-  "author": "",
+  "author": "Mike Gioia <mike@particlebits.com>",
   "license": "APGL-3.0",
   "devDependencies": {
     "@types/jaro-winkler": "^0.2.1",
