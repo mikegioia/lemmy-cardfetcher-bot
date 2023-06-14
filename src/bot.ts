@@ -142,8 +142,7 @@ const bot = new LemmyBot({
           comment: { id, post_id, content },
           creator: { name }
         },
-        botActions: { createComment },
-        preventReprocess
+        botActions: { createComment }
       }) => {
         if (name !== USERNAME_OR_EMAIL) {
           processContent(String(content), (comment) => {
@@ -154,8 +153,6 @@ const bot = new LemmyBot({
             });
           });
         }
-
-        preventReprocess();
       }
     },
     post: {
@@ -164,8 +161,7 @@ const bot = new LemmyBot({
           post: { id, body },
           creator: { name }
         },
-        botActions: { createComment },
-        preventReprocess
+        botActions: { createComment }
       }) => {
         if (name !== USERNAME_OR_EMAIL) {
           processContent(String(body), (comment) => {
@@ -175,8 +171,6 @@ const bot = new LemmyBot({
             });
           });
         }
-
-        preventReprocess();
       }
     }
   }
