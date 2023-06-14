@@ -104,7 +104,7 @@ function getResponseLine(card: ScryfallCardObject): string {
  */
 function getComment(cards: string[]): string {
   return (
-    cards.map((line) => '* ' + line) +
+    cards.map((line) => '* ' + line).join('\n') +
     '\n\n---\n[[card name]] or [[card name|SET]] to call'
   );
 }
@@ -157,32 +157,44 @@ const bot = new LemmyBot({
     comment: {
       handle: ({
         commentView: {
-          comment: { id, post_id, content }
+          comment: { id, post_id, content },
+          creator: { name }
         },
-        botActions: { createComment }
+        botActions: { createComment },
+        preventReprocess
       }) => {
-        processContent(String(content), (comment) => {
-          createComment({
-            content: comment,
-            postId: post_id,
-            parentId: id
+        if (name !== USERNAME_OR_EMAIL) {
+          processContent(String(content), (comment) => {
+            createComment({
+              content: comment,
+              postId: post_id,
+              parentId: id
+            });
           });
-        });
+        }
+
+        preventReprocess();
       }
     },
     post: {
       handle: ({
         postView: {
-          post: { id, body }
+          post: { id, body },
+          creator: { name }
         },
-        botActions: { createComment }
+        botActions: { createComment },
+        preventReprocess
       }) => {
-        processContent(String(body), (comment) => {
-          createComment({
-            content: comment,
-            postId: id
+        if (name !== USERNAME_OR_EMAIL) {
+          processContent(String(body), (comment) => {
+            createComment({
+              content: comment,
+              postId: id
+            });
           });
-        });
+        }
+
+        preventReprocess();
       }
     }
   }
