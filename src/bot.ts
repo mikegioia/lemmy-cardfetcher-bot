@@ -47,7 +47,7 @@ async function getCards(gathererCards: string[]): Promise<any[]> {
     const cardList = scryfallResponse.data;
 
     if (cardList) {
-      cards.push(getResponseLine(pickBestCard(card, cardList)));
+      cards.push(getCardCommentLine(pickBestCard(card, cardList)));
     } else {
       cards.push(`Unable to retrieve information for "${card}"`);
     }
@@ -80,7 +80,7 @@ async function searchCardName(cardName: string): Promise<any> {
  *      (SF): Scryfall web link
  *     (txt): Scryfall text link
  */
-function getResponseLine(card: ScryfallCardObject): string {
+function getCardCommentLine(card: ScryfallCardObject): string {
   const utmSource = 'utm_source=lemmy';
 
   const responseLine =
@@ -98,7 +98,7 @@ function getResponseLine(card: ScryfallCardObject): string {
 function getComment(cards: string[]): string {
   return (
     cards.map((line) => '* ' + line).join('\n') +
-    '\n\n---\n[[card name]] or [[card name|SET]] to call'
+    '\n\n---\n[[card name]] to call'
   );
 }
 
@@ -133,14 +133,6 @@ const bot = new LemmyBot({
   },
   connection: {
     secondsBetweenPolls: 30
-  },
-  federation: {
-    allowList: [
-      {
-        instance: INSTANCE,
-        communities: ['sandbox']
-      }
-    ]
   },
   dbFile: 'db.sqlite3',
   handlers: {
