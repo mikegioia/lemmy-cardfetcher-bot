@@ -26,6 +26,6 @@
   "dependencies": {
     "dotenv": "^16.0.3",
     "jaro-winkler": "^0.2.8",
-    "lemmy-bot": "^0.3.9"
+    "lemmy-bot": "^0.4.0"
   }
 }

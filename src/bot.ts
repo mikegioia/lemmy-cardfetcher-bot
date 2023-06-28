@@ -148,8 +148,8 @@ const bot = new LemmyBot({
           processContent(String(content), (comment) => {
             createComment({
               content: comment,
-              postId: post_id,
-              parentId: id
+              post_id: post_id,
+              parent_id: id
             });
           });
         }
@@ -167,7 +167,7 @@ const bot = new LemmyBot({
           processContent(String(body), (comment) => {
             createComment({
               content: comment,
-              postId: id
+              post_id: id
             });
           });
         }
