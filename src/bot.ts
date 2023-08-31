@@ -26,10 +26,14 @@ async function processContent(
     return;
   }
 
-  const cards = await getCards(gathererCards);
+  try {
+    const cards = await getCards(gathererCards);
 
-  if (cards) {
-    createComment(getComment(cards));
+    if (cards) {
+      createComment(getComment(cards));
+    }
+  } catch (error) {
+    console.log('Unhandled exception: ' + error.message);
   }
 }
 
@@ -47,7 +51,13 @@ async function getCards(gathererCards: string[]): Promise<any[]> {
     const cardList = scryfallResponse.data;
 
     if (cardList) {
-      cards.push(getCardCommentLine(pickBestCard(card, cardList)));
+      try {
+        cards.push(getCardCommentLine(pickBestCard(card, cardList)));
+      } catch (error) {
+        console.log('Error getting comment line: ' + error.message);
+
+        cards.push(`Unable to retrieve information for "${card}"`);
+      }
     } else {
       cards.push(`Unable to retrieve information for "${card}"`);
     }
@@ -84,8 +94,10 @@ function getCardCommentLine(card: ScryfallCardObject): string {
   const utmSource = 'utm_source=lemmy';
 
   const responseLine =
-    `[${card.name}](${card.image_uris.normal}&${utmSource}) - ` +
-    `[(G)](${card.related_uris.gatherer}&${utmSource}) ` +
+    `[${card.name}](${
+      card.image_uris?.normal ?? 'not-found'
+    }&${utmSource}) - ` +
+    `[(G)](${card.related_uris?.gatherer ?? 'not-found'}&${utmSource}) ` +
     `[(SF)](${card.scryfall_uri}) ` +
     `[(txt)](${card.uri}?${utmSource}&format=text)`;
 
